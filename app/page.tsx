@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useWeatherStore } from '@/lib/store';
-import { fetchWeatherData, mockWeatherData } from '@/lib/weather-api';
+import { fetchWeatherData, createMockWeatherData } from '@/lib/weather-api';
 
 // Dynamically import map components to avoid SSR issues
 const WeatherMap = dynamic(() => import('@/components/WeatherMap'), {
@@ -27,25 +27,25 @@ const DataSidebar = dynamic(() => import('@/components/DataSidebar'), {
 });
 
 export default function Home() {
-  const { weatherData, setWeatherData, setLoading, isLoading } = useWeatherStore();
+  const { weatherData, setWeatherData, setLoading, isLoading, currentLocation } = useWeatherStore();
 
   useEffect(() => {
     const loadWeatherData = async () => {
       setLoading(true);
       try {
         // Try to fetch real data, fallback to mock data if API fails
-        const data = await fetchWeatherData();
+        const data = await fetchWeatherData(currentLocation);
         setWeatherData(data);
       } catch (error) {
         console.warn('Using mock data due to API error:', error);
-        setWeatherData(mockWeatherData);
+        setWeatherData(createMockWeatherData(currentLocation));
       } finally {
         setLoading(false);
       }
     };
 
     loadWeatherData();
-  }, [setWeatherData, setLoading]);
+  }, [currentLocation, setWeatherData, setLoading]);
 
   if (isLoading) {
     return (
@@ -79,7 +79,7 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <h1 className="text-2xl font-bold text-gray-900">
-            Weather Dashboard - Berlin
+            Weather Dashboard - {currentLocation.name}
           </h1>
           <p className="text-sm text-gray-600 mt-1">
             Real-time weather data with interactive timeline and mapping
