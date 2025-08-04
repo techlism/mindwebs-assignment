@@ -32,8 +32,11 @@ export interface BerlinLocation {
 // Timeline slider state
 export interface TimelineState {
   currentIndex: number;
+  startIndex: number;
+  endIndex: number;
   isPlaying: boolean;
   playbackSpeed: number;
+  mode: 'single' | 'range';
 }
 
 // Polygon drawing state

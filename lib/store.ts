@@ -9,6 +9,8 @@ interface WeatherStore {
   // Timeline controls
   timeline: TimelineState;
   setCurrentIndex: (index: number) => void;
+  setTimelineRange: (startIndex: number, endIndex: number) => void;
+  setTimelineMode: (mode: 'single' | 'range') => void;
   togglePlayback: () => void;
   setPlaybackSpeed: (speed: number) => void;
   
@@ -32,8 +34,11 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   weatherData: null,
   timeline: {
     currentIndex: 0,
+    startIndex: 0,
+    endIndex: 23, // Default to 24 hours
     isPlaying: false,
     playbackSpeed: 1000, // milliseconds
+    mode: 'single',
   },
   polygons: [],
   parameters: [
@@ -74,6 +79,16 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   setCurrentIndex: (index) => 
     set((state) => ({
       timeline: { ...state.timeline, currentIndex: index }
+    })),
+
+  setTimelineRange: (startIndex, endIndex) =>
+    set((state) => ({
+      timeline: { ...state.timeline, startIndex, endIndex }
+    })),
+
+  setTimelineMode: (mode) =>
+    set((state) => ({
+      timeline: { ...state.timeline, mode }
     })),
     
   togglePlayback: () =>
