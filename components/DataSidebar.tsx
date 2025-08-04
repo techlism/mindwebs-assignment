@@ -5,11 +5,14 @@ import { useWeatherStore } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MetricChart } from '@/components/ui/weather-chart';
+import { PolygonAnalytics } from '@/components/ui/polygon-analytics';
 import LocationSearch from './LocationSearch';
+import { BarChart3, TrendingUp } from 'lucide-react';
 
 export default function DataSidebar() {
   const { parameters, toggleParameter, weatherData, timeline, currentLocation, polygons, updatePolygon } = useWeatherStore();
   const [selectedPolygon, setSelectedPolygon] = useState<string | null>(null);
+  const [showAnalytics, setShowAnalytics] = useState<string | null>(null);
 
   if (!weatherData) return null;
 
@@ -97,7 +100,7 @@ export default function DataSidebar() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border h-full flex flex-col space-y-4">
+    <div className="bg-white rounded-lg shadow-sm border h-full flex flex-col space-y-4 overflow-y-auto">
       {/* Header */}
       <Card>
         <CardHeader className="pb-3">
@@ -180,19 +183,43 @@ export default function DataSidebar() {
                       </span>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedPolygon(
-                      selectedPolygon === polygon.id ? null : polygon.id
-                    )}
-                  >
-                    {selectedPolygon === polygon.id ? 'Hide' : 'Configure'}
-                  </Button>
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAnalytics(
+                        showAnalytics === polygon.id ? null : polygon.id
+                      )}
+                      className="p-1 h-6 w-6"
+                    >
+                      <BarChart3 className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedPolygon(
+                        selectedPolygon === polygon.id ? null : polygon.id
+                      )}
+                      className="text-xs"
+                    >
+                      {selectedPolygon === polygon.id ? 'Hide' : 'Config'}
+                    </Button>
+                  </div>
                 </div>
 
-                {/* Polygon Statistics Charts */}
-                {polygon.statistics && (
+                {/* Enhanced Analytics Panel */}
+                {showAnalytics === polygon.id && (
+                  <div className="mt-3 pt-3 border-t">
+                    <PolygonAnalytics 
+                      polygon={polygon}
+                      weatherData={weatherData}
+                      timeline={timeline}
+                    />
+                  </div>
+                )}
+
+                {/* Basic Statistics Charts */}
+                {polygon.statistics && showAnalytics !== polygon.id && (
                   <div className="grid grid-cols-1 gap-2">
                     <MetricChart
                       title={`${dataSourceOptions.find(opt => opt.key === polygon.dataSource)?.label || 'Value'}`}
