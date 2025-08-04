@@ -77,6 +77,13 @@ export default function PolygonDrawing() {
     click(e) {
       if (!isDrawing) return;
 
+      // Check if we've reached the maximum number of points (8)
+      if (currentPoints.length >= 8) {
+        // Force completion at 8 points
+        completePolygon(currentPoints);
+        return;
+      }
+
       const newPoint: [number, number] = [e.latlng.lat, e.latlng.lng];
       const updatedPoints = [...currentPoints, newPoint];
       setCurrentPoints(updatedPoints);
@@ -242,13 +249,14 @@ export default function PolygonDrawing() {
           <div className="space-y-3">
             <div className="text-sm font-medium text-gray-700">Drawing Mode</div>
             <div className="text-xs text-gray-500">
-              Click to add points (min 3 required)
+              Click to add points (min 3, max 8 required)
               <br />
               Double-click or click near start to finish
             </div>
             <div className="text-xs text-blue-600">
-              Points: {currentPoints.length}
+              Points: {currentPoints.length}/8
               {currentPoints.length >= 3 && <span className="text-green-600"> ✓ Ready</span>}
+              {currentPoints.length >= 8 && <span className="text-orange-600"> (Max reached - will auto-complete)</span>}
             </div>
             <div className="flex space-x-2">
               <button
