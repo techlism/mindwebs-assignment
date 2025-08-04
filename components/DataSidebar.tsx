@@ -1,9 +1,10 @@
 'use client';
 
 import { useWeatherStore } from '@/lib/store';
+import LocationSearch from './LocationSearch';
 
 export default function DataSidebar() {
-  const { parameters, toggleParameter, weatherData, timeline } = useWeatherStore();
+  const { parameters, toggleParameter, weatherData, timeline, currentLocation } = useWeatherStore();
 
   if (!weatherData) return null;
 
@@ -19,7 +20,13 @@ export default function DataSidebar() {
     <div className="bg-white rounded-lg shadow-sm border h-full flex flex-col">
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold text-gray-900">Weather Data</h2>
-        <p className="text-sm text-gray-600">Berlin, Germany</p>
+        <p className="text-sm text-gray-600">{currentLocation.name}, {currentLocation.country}</p>
+      </div>
+
+      {/* Location Search */}
+      <div className="p-4 border-b">
+        <h3 className="text-sm font-medium text-gray-700 mb-3">Location</h3>
+        <LocationSearch />
       </div>
 
       {/* Current Values */}
@@ -85,7 +92,7 @@ export default function DataSidebar() {
 
       {/* Location Info */}
       <div className="p-4 border-t bg-gray-50">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Location</h3>
+        <h3 className="text-sm font-medium text-gray-700 mb-2">Location Details</h3>
         <div className="text-sm text-gray-600 space-y-1">
           <div>Lat: {weatherData.latitude.toFixed(5)}</div>
           <div>Lon: {weatherData.longitude.toFixed(5)}</div>

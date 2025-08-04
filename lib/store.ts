@@ -1,10 +1,14 @@
 import { create } from 'zustand';
-import { WeatherData, TimelineState, Polygon, WeatherParameter } from '@/types/weather';
+import { WeatherData, TimelineState, Polygon, WeatherParameter, Location } from '@/types/weather';
 
 interface WeatherStore {
   // Weather data
   weatherData: WeatherData | null;
   setWeatherData: (data: WeatherData) => void;
+  
+  // Current location
+  currentLocation: Location;
+  setCurrentLocation: (location: Location) => void;
   
   // Timeline controls
   timeline: TimelineState;
@@ -32,6 +36,12 @@ interface WeatherStore {
 export const useWeatherStore = create<WeatherStore>((set, get) => ({
   // Initial state
   weatherData: null,
+  currentLocation: {
+    latitude: 52.54833,
+    longitude: 13.407822,
+    name: 'Berlin',
+    country: 'Germany'
+  },
   timeline: {
     currentIndex: 0,
     startIndex: 0,
@@ -75,6 +85,8 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
   // Actions
   setWeatherData: (data) => set({ weatherData: data }),
+  
+  setCurrentLocation: (location) => set({ currentLocation: location }),
   
   setCurrentIndex: (index) => 
     set((state) => ({

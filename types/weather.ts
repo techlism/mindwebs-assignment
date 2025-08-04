@@ -1,4 +1,4 @@
-// Open Meteo API types based on Berlin weather data structure
+// Open Meteo API types based on weather data structure
 export interface WeatherData {
   latitude: number;
   longitude: number;
@@ -23,10 +23,37 @@ export interface WeatherData {
   };
 }
 
-export interface BerlinLocation {
-  latitude: 52.54833;
-  longitude: 13.407822;
-  name: "Berlin";
+export interface Location {
+  latitude: number;
+  longitude: number;
+  name: string;
+  country?: string;
+  admin1?: string;
+}
+
+export interface GeocodingResult {
+  results: Array<{
+    id: number;
+    name: string;
+    latitude: number;
+    longitude: number;
+    elevation: number;
+    feature_code: string;
+    country_code: string;
+    admin1_id: number;
+    admin2_id: number;
+    admin3_id: number;
+    admin4_id: number;
+    timezone: string;
+    population: number;
+    country_id: number;
+    country: string;
+    admin1: string;
+    admin2: string;
+    admin3: string;
+    admin4: string;
+  }>;
+  generationtime_ms: number;
 }
 
 // Timeline slider state

@@ -49,7 +49,7 @@ const getPolygonColor = (avgTemp: number): string => {
 };
 
 export default function WeatherMap() {
-  const { weatherData, timeline, polygons } = useWeatherStore();
+  const { weatherData, timeline, polygons, currentLocation } = useWeatherStore();
   const [mounted, setMounted] = useState(false);
 
   // Ensure component only renders on client
@@ -68,33 +68,34 @@ export default function WeatherMap() {
     );
   }
 
-  const berlinPosition: [number, number] = [weatherData.latitude, weatherData.longitude];
+  const locationPosition: [number, number] = [weatherData.latitude, weatherData.longitude];
   const currentTemperature = weatherData.hourly.temperature_2m[timeline.currentIndex];
   const currentTime = weatherData.hourly.time[timeline.currentIndex];
 
   return (
     <div className="w-full h-full relative">
       <MapContainer
-        center={berlinPosition}
+        center={locationPosition}
         zoom={10}
         className="w-full h-full rounded-lg"
         scrollWheelZoom={true}
+        key={`${currentLocation.latitude}-${currentLocation.longitude}`} // Force re-render on location change
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Berlin weather marker */}
+        {/* Current location weather marker */}
         <Marker 
-          position={berlinPosition}
+          position={locationPosition}
           icon={createCustomIcon(currentTemperature)}
         >
           <Popup>
             <div className="text-center">
-              <h3 className="font-semibold mb-2">Berlin Weather</h3>
+              <h3 className="font-semibold mb-2">{currentLocation.name} Weather</h3>
               <p><strong>Temperature:</strong> {currentTemperature?.toFixed(1)}°C</p>
-              <p><strong>Time:</strong> {new Date(currentTime).toLocaleString('de-DE')}</p>
+              <p><strong>Time:</strong> {new Date(currentTime).toLocaleString()}</p>
               <p><strong>Humidity:</strong> {weatherData.hourly.relative_humidity_2m[timeline.currentIndex]}%</p>
               <p><strong>Wind:</strong> {weatherData.hourly.wind_speed_10m[timeline.currentIndex]?.toFixed(1)} km/h</p>
             </div>
@@ -157,12 +158,13 @@ export default function WeatherMap() {
       {/* Current weather info overlay */}
       <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg border z-[1000]">
         <h4 className="font-semibold text-sm mb-1">Current Weather</h4>
-        <p className="text-sm">{new Date(currentTime).toLocaleString('de-DE', {
+        <p className="text-sm">{new Date(currentTime).toLocaleString(undefined, {
           weekday: 'short',
           hour: '2-digit',
           minute: '2-digit'
         })}</p>
         <p className="text-lg font-bold text-blue-600">{currentTemperature?.toFixed(1)}°C</p>
+        <p className="text-xs text-gray-500">{currentLocation.name}</p>
       </div>
     </div>
   );
