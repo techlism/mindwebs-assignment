@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
-import { useWeatherStore } from '@/lib/store';
-import { fetchWeatherData, createMockWeatherData } from '@/lib/weather-api';
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+import { useWeatherStore } from "@/lib/store";
+import { createMockWeatherData, fetchWeatherData } from "@/lib/weather-api";
 
 // Dynamically import map components to avoid SSR issues
-const WeatherMap = dynamic(() => import('@/components/WeatherMap'), {
+const WeatherMap = dynamic(() => import("@/components/WeatherMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
@@ -18,16 +18,22 @@ const WeatherMap = dynamic(() => import('@/components/WeatherMap'), {
   ),
 });
 
-const Timeline = dynamic(() => import('@/components/Timeline'), {
+const Timeline = dynamic(() => import("@/components/Timeline"), {
   ssr: false,
 });
 
-const DataSidebar = dynamic(() => import('@/components/DataSidebar'), {
+const DataSidebar = dynamic(() => import("@/components/DataSidebar"), {
   ssr: false,
 });
 
 export default function Home() {
-  const { weatherData, setWeatherData, setLoading, isLoading, currentLocation } = useWeatherStore();
+  const {
+    weatherData,
+    setWeatherData,
+    setLoading,
+    isLoading,
+    currentLocation,
+  } = useWeatherStore();
 
   useEffect(() => {
     const loadWeatherData = async () => {
@@ -37,7 +43,7 @@ export default function Home() {
         const data = await fetchWeatherData(currentLocation);
         setWeatherData(data);
       } catch (error) {
-        console.warn('Using mock data due to API error:', error);
+        console.warn("Using mock data due to API error:", error);
         setWeatherData(createMockWeatherData(currentLocation));
       } finally {
         setLoading(false);
@@ -63,7 +69,7 @@ export default function Home() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <p className="text-red-600 mb-4">Failed to load weather data</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >

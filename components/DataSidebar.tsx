@@ -19,7 +19,7 @@ export default function DataSidebar() {
     windDirection: weatherData.hourly.wind_direction_10m[timeline.currentIndex],
   };
 
-  const selectedPolygonData = selectedPolygon 
+  const selectedPolygonData = selectedPolygon
     ? polygons.find(p => p.id === selectedPolygon)
     : null;
 
@@ -63,8 +63,8 @@ export default function DataSidebar() {
       color: '#10b981',
     };
 
-    updatePolygon(polygonId, { 
-      thresholds: [...polygon.thresholds, newThreshold] 
+    updatePolygon(polygonId, {
+      thresholds: [...polygon.thresholds, newThreshold]
     });
   };
 
@@ -131,8 +131,8 @@ export default function DataSidebar() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-700">Polygon Configuration</h3>
             <div className="text-xs text-gray-500">
-              {timeline.mode === 'range' 
-                ? `${timeline.endIndex - timeline.startIndex + 1}h avg` 
+              {timeline.mode === 'range'
+                ? `${timeline.endIndex - timeline.startIndex + 1}h avg`
                 : 'Current hour'
               }
             </div>
