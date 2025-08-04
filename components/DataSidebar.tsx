@@ -128,7 +128,15 @@ export default function DataSidebar() {
       {/* Polygon Data Sources */}
       {polygons.length > 0 && (
         <div className="p-4 border-b">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Polygon Configuration</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-gray-700">Polygon Configuration</h3>
+            <div className="text-xs text-gray-500">
+              {timeline.mode === 'range' 
+                ? `${timeline.endIndex - timeline.startIndex + 1}h avg` 
+                : 'Current hour'
+              }
+            </div>
+          </div>
           <div className="space-y-3">
             {polygons.map((polygon, index) => (
               <div key={polygon.id} className="border rounded-lg p-3">
@@ -139,6 +147,11 @@ export default function DataSidebar() {
                       style={{ backgroundColor: polygon.color }}
                     />
                     <span className="text-sm font-medium">Area {index + 1}</span>
+                    {polygon.statistics && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {polygon.statistics.average.toFixed(1)}°C
+                      </span>
+                    )}
                   </div>
                   <button
                     onClick={() => setSelectedPolygon(
@@ -170,12 +183,24 @@ export default function DataSidebar() {
                       </select>
                     </div>
 
-                    {/* Statistics Display */}
+                    {/* Real-time Statistics Display */}
                     {polygon.statistics && (
-                      <div className="text-xs text-gray-600">
-                        <div className="font-medium">Statistics:</div>
-                        <div>Avg: {polygon.statistics.average.toFixed(1)}°C</div>
-                        <div>Range: {polygon.statistics.min.toFixed(1)} - {polygon.statistics.max.toFixed(1)}°C</div>
+                      <div className="bg-blue-50 p-2 rounded text-xs">
+                        <div className="font-medium text-blue-800 mb-1">Live Statistics:</div>
+                        <div className="space-y-1 text-blue-700">
+                          <div className="flex justify-between">
+                            <span>Average:</span>
+                            <span className="font-medium">{polygon.statistics.average.toFixed(1)}°C</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Range:</span>
+                            <span>{polygon.statistics.min.toFixed(1)} - {polygon.statistics.max.toFixed(1)}°C</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Data points:</span>
+                            <span>{polygon.statistics.count}</span>
+                          </div>
+                        </div>
                       </div>
                     )}
 

@@ -12,10 +12,17 @@ export default function Timeline() {
     setTimelineMode,
     togglePlayback,
     setPlaybackSpeed,
+    updatePolygonDataForTimeline,
+    polygons,
   } = useWeatherStore();
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Update polygon data when timeline changes
+  useEffect(() => {
+    updatePolygonDataForTimeline();
+  }, [timeline.currentIndex, timeline.startIndex, timeline.endIndex, timeline.mode, updatePolygonDataForTimeline]);
 
   // Auto-advance timeline when playing
   useEffect(() => {
@@ -170,6 +177,14 @@ export default function Timeline() {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Timeline Control</h3>
         <div className="flex items-center space-x-4">
+          {/* Polygon sync indicator */}
+          {polygons.length > 0 && (
+            <div className="flex items-center space-x-2 text-xs text-green-600">
+              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+              <span>{polygons.length} polygon{polygons.length !== 1 ? 's' : ''} synced</span>
+            </div>
+          )}
+          
           {/* Mode Toggle */}
           <div className="flex items-center space-x-2 text-sm">
             <span className="text-gray-600">Mode:</span>
