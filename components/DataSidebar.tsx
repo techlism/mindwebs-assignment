@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useWeatherStore } from '@/lib/store';
 import LocationSearch from './LocationSearch';
 
 export default function DataSidebar() {
-  const { parameters, toggleParameter, weatherData, timeline, currentLocation } = useWeatherStore();
+  const { parameters, toggleParameter, weatherData, timeline, currentLocation, polygons, updatePolygon } = useWeatherStore();
+  const [selectedPolygon, setSelectedPolygon] = useState<string | null>(null);
+  const [showThresholdEditor, setShowThresholdEditor] = useState(false);
 
   if (!weatherData) return null;
 
@@ -14,6 +17,63 @@ export default function DataSidebar() {
     humidity: weatherData.hourly.relative_humidity_2m[timeline.currentIndex],
     windSpeed: weatherData.hourly.wind_speed_10m[timeline.currentIndex],
     windDirection: weatherData.hourly.wind_direction_10m[timeline.currentIndex],
+  };
+
+  const selectedPolygonData = selectedPolygon 
+    ? polygons.find(p => p.id === selectedPolygon)
+    : null;
+
+  const dataSourceOptions = [
+    { key: 'temperature_2m', label: 'Temperature', unit: '°C' },
+    { key: 'relative_humidity_2m', label: 'Humidity', unit: '%' },
+    { key: 'wind_speed_10m', label: 'Wind Speed', unit: 'km/h' },
+  ] as const;
+
+  const operatorOptions = [
+    { key: '>', label: '>' },
+    { key: '<', label: '<' },
+    { key: '>=', label: '≥' },
+    { key: '<=', label: '≤' },
+  ] as const;
+
+  const handleDataSourceChange = (polygonId: string, dataSource: any) => {
+    updatePolygon(polygonId, { dataSource });
+  };
+
+  const handleThresholdUpdate = (polygonId: string, thresholdIndex: number, field: string, value: any) => {
+    const polygon = polygons.find(p => p.id === polygonId);
+    if (!polygon) return;
+
+    const updatedThresholds = [...polygon.thresholds];
+    updatedThresholds[thresholdIndex] = {
+      ...updatedThresholds[thresholdIndex],
+      [field]: value,
+    };
+
+    updatePolygon(polygonId, { thresholds: updatedThresholds });
+  };
+
+  const addThreshold = (polygonId: string) => {
+    const polygon = polygons.find(p => p.id === polygonId);
+    if (!polygon) return;
+
+    const newThreshold = {
+      operator: '>=' as const,
+      value: 20,
+      color: '#10b981',
+    };
+
+    updatePolygon(polygonId, { 
+      thresholds: [...polygon.thresholds, newThreshold] 
+    });
+  };
+
+  const removeThreshold = (polygonId: string, thresholdIndex: number) => {
+    const polygon = polygons.find(p => p.id === polygonId);
+    if (!polygon) return;
+
+    const updatedThresholds = polygon.thresholds.filter((_, idx) => idx !== thresholdIndex);
+    updatePolygon(polygonId, { thresholds: updatedThresholds });
   };
 
   return (
@@ -64,6 +124,115 @@ export default function DataSidebar() {
           </div>
         )}
       </div>
+
+      {/* Polygon Data Sources */}
+      {polygons.length > 0 && (
+        <div className="p-4 border-b">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Polygon Configuration</h3>
+          <div className="space-y-3">
+            {polygons.map((polygon, index) => (
+              <div key={polygon.id} className="border rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: polygon.color }}
+                    />
+                    <span className="text-sm font-medium">Area {index + 1}</span>
+                  </div>
+                  <button
+                    onClick={() => setSelectedPolygon(
+                      selectedPolygon === polygon.id ? null : polygon.id
+                    )}
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    {selectedPolygon === polygon.id ? 'Hide' : 'Configure'}
+                  </button>
+                </div>
+
+                {selectedPolygon === polygon.id && (
+                  <div className="space-y-3 mt-3 pt-3 border-t">
+                    {/* Data Source Selection */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Data Source
+                      </label>
+                      <select
+                        value={polygon.dataSource}
+                        onChange={(e) => handleDataSourceChange(polygon.id, e.target.value)}
+                        className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                      >
+                        {dataSourceOptions.map(option => (
+                          <option key={option.key} value={option.key}>
+                            {option.label} ({option.unit})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Statistics Display */}
+                    {polygon.statistics && (
+                      <div className="text-xs text-gray-600">
+                        <div className="font-medium">Statistics:</div>
+                        <div>Avg: {polygon.statistics.average.toFixed(1)}°C</div>
+                        <div>Range: {polygon.statistics.min.toFixed(1)} - {polygon.statistics.max.toFixed(1)}°C</div>
+                      </div>
+                    )}
+
+                    {/* Color Thresholds */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-medium text-gray-600">
+                          Color Thresholds
+                        </label>
+                        <button
+                          onClick={() => addThreshold(polygon.id)}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {polygon.thresholds.map((threshold, thresholdIndex) => (
+                          <div key={thresholdIndex} className="flex items-center space-x-2">
+                            <select
+                              value={threshold.operator}
+                              onChange={(e) => handleThresholdUpdate(polygon.id, thresholdIndex, 'operator', e.target.value)}
+                              className="text-xs border border-gray-300 rounded px-1 py-1 w-12"
+                            >
+                              {operatorOptions.map(op => (
+                                <option key={op.key} value={op.key}>{op.label}</option>
+                              ))}
+                            </select>
+                            <input
+                              type="number"
+                              value={threshold.value}
+                              onChange={(e) => handleThresholdUpdate(polygon.id, thresholdIndex, 'value', parseFloat(e.target.value))}
+                              className="text-xs border border-gray-300 rounded px-2 py-1 w-16"
+                            />
+                            <input
+                              type="color"
+                              value={threshold.color}
+                              onChange={(e) => handleThresholdUpdate(polygon.id, thresholdIndex, 'color', e.target.value)}
+                              className="w-6 h-6 rounded border"
+                            />
+                            <button
+                              onClick={() => removeThreshold(polygon.id, thresholdIndex)}
+                              className="text-red-600 hover:text-red-800 text-xs"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Parameter Controls */}
       <div className="flex-1 p-4">

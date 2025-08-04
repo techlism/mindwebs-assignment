@@ -72,6 +72,18 @@ export interface Polygon {
   coordinates: [number, number][];
   color: string;
   temperature?: number;
+  dataSource: 'temperature_2m' | 'relative_humidity_2m' | 'wind_speed_10m';
+  thresholds: {
+    operator: '>' | '<' | '>=' | '<=';
+    value: number;
+    color: string;
+  }[];
+  statistics?: {
+    min: number;
+    max: number;
+    average: number;
+    count: number;
+  };
 }
 
 // Weather parameters for sidebar

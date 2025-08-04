@@ -42,10 +42,34 @@ const getTemperatureColor = (temp: number): string => {
   return '#ef4444';                     // Red for hot
 };
 
-const getPolygonColor = (avgTemp: number): string => {
-  // Similar to marker colors but with transparency
-  const baseColor = getTemperatureColor(avgTemp);
-  return baseColor + '40'; // Add 40 for 25% opacity
+const getPolygonColor = (polygon: Polygon, currentTemp: number): string => {
+  // Use the polygon's threshold rules to determine color
+  if (!polygon.thresholds || polygon.thresholds.length === 0) {
+    return getTemperatureColor(polygon.temperature || currentTemp) + '40';
+  }
+
+  const value = polygon.statistics?.average || polygon.temperature || currentTemp;
+  
+  // Find the matching threshold
+  for (const threshold of polygon.thresholds.sort((a, b) => b.value - a.value)) {
+    switch (threshold.operator) {
+      case '>=':
+        if (value >= threshold.value) return threshold.color + '40';
+        break;
+      case '>':
+        if (value > threshold.value) return threshold.color + '40';
+        break;
+      case '<=':
+        if (value <= threshold.value) return threshold.color + '40';
+        break;
+      case '<':
+        if (value < threshold.value) return threshold.color + '40';
+        break;
+    }
+  }
+  
+  // Default fallback
+  return getTemperatureColor(value) + '40';
 };
 
 export default function WeatherMap() {
@@ -109,16 +133,36 @@ export default function WeatherMap() {
             positions={polygon.coordinates as [number, number][]}
             pathOptions={{
               color: polygon.color,
-              fillColor: getPolygonColor(polygon.temperature || currentTemperature),
-              fillOpacity: 0.3,
+              fillColor: getPolygonColor(polygon, currentTemperature),
+              fillOpacity: 0.4,
               weight: 2,
             }}
           >
             <Popup>
-              <div>
-                <h4 className="font-semibold">Custom Area</h4>
-                <p>Estimated temp: {(polygon.temperature || currentTemperature)?.toFixed(1)}°C</p>
-                <p>Points: {polygon.coordinates.length}</p>
+              <div className="min-w-48">
+                <h4 className="font-semibold mb-2">Custom Area #{polygons.indexOf(polygon) + 1}</h4>
+                <div className="space-y-1 text-sm">
+                  <p><strong>Data Source:</strong> {polygon.dataSource.replace('_', ' ').replace('2m', ' (2m)')}</p>
+                  {polygon.statistics && (
+                    <>
+                      <p><strong>Average:</strong> {polygon.statistics.average.toFixed(1)}°C</p>
+                      <p><strong>Range:</strong> {polygon.statistics.min.toFixed(1)}°C - {polygon.statistics.max.toFixed(1)}°C</p>
+                      <p><strong>Points:</strong> {polygon.statistics.count}</p>
+                    </>
+                  )}
+                  <div className="mt-2">
+                    <p className="font-medium text-xs">Color Thresholds:</p>
+                    {polygon.thresholds.map((threshold, idx) => (
+                      <div key={idx} className="flex items-center space-x-2 text-xs">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: threshold.color }}
+                        />
+                        <span>{threshold.operator} {threshold.value}°C</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </Popup>
           </LeafletPolygon>
