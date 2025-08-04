@@ -18,7 +18,8 @@ export async function fetchWeatherData(location: Location = DEFAULT_LOCATION): P
     longitude: location.longitude.toString(),
     hourly: 'temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m',
     timezone: 'auto',
-    forecast_days: '14', // 2-week forecast as specified
+    forecast_days: '16', // 16 days to get proper historical + future data
+    past_days: '14', // 14 days of historical data for 30-day window
   });
 
   const url = `${WEATHER_BASE_URL}?${params}`;
@@ -91,21 +92,22 @@ export const createMockWeatherData = (location: Location = DEFAULT_LOCATION): We
     wind_direction_10m: "°"
   },
   hourly: {
-    time: Array.from({ length: 336 }, (_, i) => {
+    time: Array.from({ length: 720 }, (_, i) => {
       const date = new Date();
-      date.setHours(date.getHours() + i);
+      // Start from 15 days ago to create a 30-day window
+      date.setHours(date.getHours() - (14 * 24) + i);
       return date.toISOString();
     }),
-    temperature_2m: Array.from({ length: 336 }, (_, i) => 
+    temperature_2m: Array.from({ length: 720 }, (_, i) => 
       Math.round((Math.sin(i / 24 * Math.PI * 2) * 10 + 15 + Math.random() * 5) * 10) / 10
     ),
-    relative_humidity_2m: Array.from({ length: 336 }, () => 
+    relative_humidity_2m: Array.from({ length: 720 }, () => 
       Math.round((Math.random() * 40 + 40))
     ),
-    wind_speed_10m: Array.from({ length: 336 }, () => 
+    wind_speed_10m: Array.from({ length: 720 }, () => 
       Math.round(Math.random() * 25 * 10) / 10
     ),
-    wind_direction_10m: Array.from({ length: 336 }, () => 
+    wind_direction_10m: Array.from({ length: 720 }, () => 
       Math.round(Math.random() * 360)
     ),
   }
