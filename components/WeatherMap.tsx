@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon as LeafletPolygon } from 'react-leaflet';
 import { LatLng, divIcon } from 'leaflet';
 import { useWeatherStore } from '@/lib/store';
+import { Polygon } from '@/types/weather';
 import PolygonDrawing from './PolygonDrawing';
 
 // Fix for default markers in React Leaflet

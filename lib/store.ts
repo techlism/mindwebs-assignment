@@ -135,6 +135,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
     set((state) => {
       if (!state.weatherData) return state;
 
+      const weatherData = state.weatherData; // Store in variable for type safety
       const updatedPolygons = state.polygons.map(polygon => {
         // Calculate data for current timeline selection
         let dataValues: number[] = [];
@@ -151,8 +152,8 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
         // Get data values based on polygon's data source
         for (const index of timeIndices) {
-          if (index >= 0 && index < state.weatherData.hourly.time.length) {
-            const value = state.weatherData.hourly[polygon.dataSource][index];
+          if (index >= 0 && index < weatherData.hourly.time.length) {
+            const value = weatherData.hourly[polygon.dataSource][index];
             if (typeof value === 'number') {
               dataValues.push(value);
             }
