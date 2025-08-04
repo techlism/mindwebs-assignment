@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useWeatherStore } from "@/lib/store";
 import { createMockWeatherData, fetchWeatherData } from "@/lib/weather-api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 // Dynamically import map components to avoid SSR issues
 const WeatherMap = dynamic(() => import("@/components/WeatherMap"), {
@@ -56,10 +58,12 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading weather data...</p>
-        </div>
+        <Card>
+          <CardContent className="text-center p-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading weather data...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -67,15 +71,14 @@ export default function Home() {
   if (!weatherData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Failed to load weather data</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
+        <Card>
+          <CardContent className="text-center p-8">
+            <p className="text-red-600 mb-4">Failed to load weather data</p>
+            <Button onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -88,7 +91,7 @@ export default function Home() {
             Weather Dashboard - {currentLocation.name}
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Real-time weather data with interactive timeline and mapping
+            Interactive weather data with advanced timeline and mapping visualization
           </p>
         </div>
       </header>
@@ -103,14 +106,17 @@ export default function Home() {
           {/* Main Content */}
           <div className="lg:col-span-3 flex flex-col space-y-6">
             {/* Interactive Map */}
-            <div className="flex-1 bg-white rounded-lg shadow-sm border">
-              <WeatherMap />
-            </div>
+            <Card className="flex-1">
+              <CardHeader>
+                <CardTitle>Interactive Weather Map</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <WeatherMap />
+              </CardContent>
+            </Card>
 
             {/* Timeline Controls */}
-            <div className="bg-white rounded-lg shadow-sm border p-4">
-              <Timeline />
-            </div>
+            <Timeline />
           </div>
         </div>
       </div>

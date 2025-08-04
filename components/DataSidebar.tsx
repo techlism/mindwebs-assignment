@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useWeatherStore } from '@/lib/store';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { MetricChart } from '@/components/ui/weather-chart';
 import LocationSearch from './LocationSearch';
 
 export default function DataSidebar() {
   const { parameters, toggleParameter, weatherData, timeline, currentLocation, polygons, updatePolygon } = useWeatherStore();
   const [selectedPolygon, setSelectedPolygon] = useState<string | null>(null);
-  const [showThresholdEditor, setShowThresholdEditor] = useState(false);
 
   if (!weatherData) return null;
 
@@ -76,71 +78,96 @@ export default function DataSidebar() {
     updatePolygon(polygonId, { thresholds: updatedThresholds });
   };
 
+  // Get trend data for polygon statistics
+  const getPolygonTrendData = (polygon: any) => {
+    if (!polygon.dataSource || !weatherData) return [];
+    
+    const step = Math.max(1, Math.floor(weatherData.hourly.time.length / 24)); // Get 24 data points
+    const trend = [];
+    
+    for (let i = 0; i < weatherData.hourly.time.length; i += step) {
+      const hourlyData = weatherData.hourly as any;
+      const value = hourlyData[polygon.dataSource][i];
+      if (typeof value === 'number') {
+        trend.push(value);
+      }
+    }
+    
+    return trend;
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border h-full flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold text-gray-900">Weather Data</h2>
-        <p className="text-sm text-gray-600">{currentLocation.name}, {currentLocation.country}</p>
-      </div>
+    <div className="bg-white rounded-lg shadow-sm border h-full flex flex-col space-y-4">
+      {/* Header */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Weather Data</CardTitle>
+          <p className="text-sm text-gray-600">{currentLocation.name}, {currentLocation.country}</p>
+        </CardHeader>
+      </Card>
 
       {/* Location Search */}
-      <div className="p-4 border-b">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Location</h3>
-        <LocationSearch />
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Location</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <LocationSearch />
+        </CardContent>
+      </Card>
 
       {/* Current Values */}
-      <div className="p-4 border-b">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Current Values</h3>
-        {currentTime && (
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Time:</span>
-              <span className="font-medium">
-                {new Date(currentTime).toLocaleString('de-DE', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  day: '2-digit',
-                  month: '2-digit',
-                })}
-              </span>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Current Values</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {currentTime && (
+            <div className="grid grid-cols-1 gap-3">
+              <MetricChart
+                title="Temperature"
+                value={currentData.temperature || 0}
+                unit="°C"
+                color="#ef4444"
+                trend={weatherData.hourly.temperature_2m.slice(Math.max(0, timeline.currentIndex - 12), timeline.currentIndex + 12)}
+              />
+              <MetricChart
+                title="Humidity"
+                value={currentData.humidity || 0}
+                unit="%"
+                color="#3b82f6"
+                trend={weatherData.hourly.relative_humidity_2m.slice(Math.max(0, timeline.currentIndex - 12), timeline.currentIndex + 12)}
+              />
+              <MetricChart
+                title="Wind Speed"
+                value={currentData.windSpeed || 0}
+                unit="km/h"
+                color="#10b981"
+                trend={weatherData.hourly.wind_speed_10m.slice(Math.max(0, timeline.currentIndex - 12), timeline.currentIndex + 12)}
+              />
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Temperature:</span>
-              <span className="font-medium">{currentData.temperature?.toFixed(1)}°C</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Humidity:</span>
-              <span className="font-medium">{currentData.humidity}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Wind Speed:</span>
-              <span className="font-medium">{currentData.windSpeed?.toFixed(1)} km/h</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Wind Direction:</span>
-              <span className="font-medium">{currentData.windDirection}°</span>
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Polygon Data Sources */}
       {polygons.length > 0 && (
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-700">Polygon Configuration</h3>
-            <div className="text-xs text-gray-500">
-              {timeline.mode === 'range'
-                ? `${timeline.endIndex - timeline.startIndex + 1}h avg`
-                : 'Current hour'
-              }
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">Polygon Analytics</CardTitle>
+              <div className="text-xs text-gray-500">
+                {timeline.mode === 'range'
+                  ? `${timeline.endIndex - timeline.startIndex + 1}h avg`
+                  : 'Current hour'
+                }
+              </div>
             </div>
-          </div>
-          <div className="space-y-3">
+          </CardHeader>
+          <CardContent className="pt-0 space-y-4">
             {polygons.map((polygon, index) => (
-              <div key={polygon.id} className="border rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
+              <div key={polygon.id} className="border rounded-lg p-3 space-y-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <div
                       className="w-3 h-3 rounded-full"
@@ -153,18 +180,32 @@ export default function DataSidebar() {
                       </span>
                     )}
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setSelectedPolygon(
                       selectedPolygon === polygon.id ? null : polygon.id
                     )}
-                    className="text-xs text-blue-600 hover:text-blue-800"
                   >
                     {selectedPolygon === polygon.id ? 'Hide' : 'Configure'}
-                  </button>
+                  </Button>
                 </div>
 
+                {/* Polygon Statistics Charts */}
+                {polygon.statistics && (
+                  <div className="grid grid-cols-1 gap-2">
+                    <MetricChart
+                      title={`${dataSourceOptions.find(opt => opt.key === polygon.dataSource)?.label || 'Value'}`}
+                      value={polygon.statistics.average}
+                      unit={dataSourceOptions.find(opt => opt.key === polygon.dataSource)?.unit || ''}
+                      color={polygon.color}
+                      trend={getPolygonTrendData(polygon)}
+                    />
+                  </div>
+                )}
+
                 {selectedPolygon === polygon.id && (
-                  <div className="space-y-3 mt-3 pt-3 border-t">
+                  <div className="space-y-3 pt-3 border-t">
                     {/* Data Source Selection */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -185,21 +226,21 @@ export default function DataSidebar() {
 
                     {/* Real-time Statistics Display */}
                     {polygon.statistics && (
-                      <div className="bg-blue-50 p-2 rounded text-xs">
-                        <div className="font-medium text-blue-800 mb-1">Live Statistics:</div>
-                        <div className="space-y-1 text-blue-700">
-                          <div className="flex justify-between">
-                            <span>Average:</span>
-                            <span className="font-medium">{polygon.statistics.average.toFixed(1)}°C</span>
+                      <div className="bg-blue-50 p-3 rounded text-xs space-y-2">
+                        <div className="font-medium text-blue-800">Live Statistics:</div>
+                        <div className="grid grid-cols-2 gap-2 text-blue-700">
+                          <div>
+                            <div className="text-gray-600">Average</div>
+                            <div className="font-medium">{polygon.statistics.average.toFixed(1)}</div>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Range:</span>
-                            <span>{polygon.statistics.min.toFixed(1)} - {polygon.statistics.max.toFixed(1)}°C</span>
+                          <div>
+                            <div className="text-gray-600">Range</div>
+                            <div className="font-medium">{polygon.statistics.min.toFixed(1)} - {polygon.statistics.max.toFixed(1)}</div>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Data points:</span>
-                            <span>{polygon.statistics.count}</span>
-                          </div>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-gray-600">Data points: </span>
+                          <span className="font-medium">{polygon.statistics.count}</span>
                         </div>
                       </div>
                     )}
@@ -210,12 +251,13 @@ export default function DataSidebar() {
                         <label className="text-xs font-medium text-gray-600">
                           Color Thresholds
                         </label>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => addThreshold(polygon.id)}
-                          className="text-xs text-blue-600 hover:text-blue-800"
                         >
                           Add
-                        </button>
+                        </Button>
                       </div>
                       <div className="space-y-2">
                         {polygon.thresholds.map((threshold, thresholdIndex) => (
@@ -241,12 +283,14 @@ export default function DataSidebar() {
                               onChange={(e) => handleThresholdUpdate(polygon.id, thresholdIndex, 'color', e.target.value)}
                               className="w-6 h-6 rounded border"
                             />
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => removeThreshold(polygon.id, thresholdIndex)}
-                              className="text-red-600 hover:text-red-800 text-xs"
+                              className="text-red-600 hover:text-red-800"
                             >
                               ×
-                            </button>
+                            </Button>
                           </div>
                         ))}
                       </div>
@@ -255,45 +299,53 @@ export default function DataSidebar() {
                 )}
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Parameter Controls */}
-      <div className="flex-1 p-4">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Display Parameters</h3>
-        <div className="space-y-2">
-          {parameters.map((param) => (
-            <label key={param.key} className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={param.visible}
-                onChange={() => toggleParameter(param.key)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <div className="flex items-center space-x-2 flex-1">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: param.color }}
+      <Card className="flex-1">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Display Parameters</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="space-y-2">
+            {parameters.map((param) => (
+              <label key={param.key} className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={param.visible}
+                  onChange={() => toggleParameter(param.key)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{param.label}</span>
-                <span className="text-xs text-gray-500 ml-auto">{param.unit}</span>
-              </div>
-            </label>
-          ))}
-        </div>
-      </div>
+                <div className="flex items-center space-x-2 flex-1">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: param.color }}
+                  />
+                  <span className="text-sm text-gray-700">{param.label}</span>
+                  <span className="text-xs text-gray-500 ml-auto">{param.unit}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Location Info */}
-      <div className="p-4 border-t bg-gray-50">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Location Details</h3>
-        <div className="text-sm text-gray-600 space-y-1">
-          <div>Lat: {weatherData.latitude.toFixed(5)}</div>
-          <div>Lon: {weatherData.longitude.toFixed(5)}</div>
-          <div>Elevation: {weatherData.elevation}m</div>
-          <div>Timezone: {weatherData.timezone}</div>
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Location Details</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="text-sm text-gray-600 space-y-1">
+            <div>Lat: {weatherData.latitude.toFixed(5)}</div>
+            <div>Lon: {weatherData.longitude.toFixed(5)}</div>
+            <div>Elevation: {weatherData.elevation}m</div>
+            <div>Timezone: {weatherData.timezone}</div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

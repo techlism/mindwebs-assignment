@@ -1,11 +1,11 @@
 import { WeatherData, Location, GeocodingResult } from '@/types/weather';
 
-// Default location (Berlin)
+// Default location (New York)
 const DEFAULT_LOCATION: Location = {
-  latitude: 52.54833,
-  longitude: 13.407822,
-  name: 'Berlin',
-  country: 'Germany'
+  latitude: 40.7128,
+  longitude: -74.0060,
+  name: 'New York',
+  country: 'United States'
 };
 
 // Open Meteo API endpoints
