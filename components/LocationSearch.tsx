@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useWeatherStore } from '@/lib/store';
 import { searchLocations, fetchWeatherData, createMockWeatherData } from '@/lib/weather-api';
 import { Location } from '@/types/weather';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function LocationSearch() {
   const { currentLocation, setCurrentLocation, setWeatherData, setLoading } = useWeatherStore();
@@ -91,54 +93,70 @@ export default function LocationSearch() {
   };
 
   return (
-    <div className="relative" ref={searchRef}>
-      <div className="flex items-center space-x-2 mb-2">
-        <div className="flex-1">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for a city or location..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-          />
+    <div className="space-y-3">
+      <div className="relative" ref={searchRef}>
+        <div className="flex items-center space-x-2 mb-2">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search for a city or location..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            />
+            {isSearching && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              </div>
+            )}
+          </div>
         </div>
-        {isSearching && (
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+
+        {/* Search Suggestions */}
+        {showSuggestions && suggestions.length > 0 && (
+          <Card className="absolute top-full left-0 right-0 z-50 max-h-64 overflow-y-auto">
+            <CardContent className="p-0">
+              {suggestions.map((location, index) => (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  onClick={() => handleLocationSelect(location)}
+                  className="w-full justify-start p-3 h-auto border-b border-gray-100 last:border-b-0 rounded-none"
+                >
+                  <div className="text-left">
+                    <div className="font-medium text-sm">{location.name}</div>
+                    <div className="text-xs text-gray-500">
+                      {[location.admin1, location.country].filter(Boolean).join(', ')}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {location.latitude.toFixed(4)}°, {location.longitude.toFixed(4)}°
+                    </div>
+                  </div>
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* No results message */}
+        {showSuggestions && query.length >= 2 && suggestions.length === 0 && !isSearching && (
+          <Card className="absolute top-full left-0 right-0 z-50">
+            <CardContent className="p-3 text-sm text-gray-500">
+              No locations found for "{query}"
+            </CardContent>
+          </Card>
         )}
       </div>
 
       {/* Current Location Display */}
-      <div className="text-sm text-gray-600 mb-2">
-        Current: <span className="font-medium">{formatLocationName(currentLocation)}</span>
-      </div>
-
-      {/* Search Suggestions */}
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
-          {suggestions.map((location, index) => (
-            <button
-              key={index}
-              onClick={() => handleLocationSelect(location)}
-              className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none text-sm border-b border-gray-100 last:border-b-0"
-            >
-              <div className="font-medium">{location.name}</div>
-              <div className="text-xs text-gray-500">
-                {[location.admin1, location.country].filter(Boolean).join(', ')}
-              </div>
-              <div className="text-xs text-gray-400">
-                {location.latitude.toFixed(4)}°, {location.longitude.toFixed(4)}°
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* No results message */}
-      {showSuggestions && query.length >= 2 && suggestions.length === 0 && !isSearching && (
-        <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg z-50 px-3 py-2 text-sm text-gray-500">
-          No locations found for "{query}"
-        </div>
-      )}
+      <Card>
+        <CardContent className="p-3">
+          <div className="text-sm">
+            <span className="text-gray-600">Current: </span>
+            <span className="font-medium">{formatLocationName(currentLocation)}</span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

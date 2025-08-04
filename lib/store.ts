@@ -38,10 +38,10 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   // Initial state
   weatherData: null,
   currentLocation: {
-    latitude: 52.54833,
-    longitude: 13.407822,
-    name: 'Berlin',
-    country: 'Germany'
+    latitude: 40.7128,
+    longitude: -74.0060,
+    name: 'New York',
+    country: 'United States'
   },
   timeline: {
     currentIndex: 0,
