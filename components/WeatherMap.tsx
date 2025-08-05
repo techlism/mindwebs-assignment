@@ -6,6 +6,7 @@ import { LatLng, divIcon } from 'leaflet';
 import { useWeatherStore } from '@/lib/store';
 import { Polygon } from '@/types/weather';
 import PolygonDrawing from './PolygonDrawing';
+import PolygonDrawingControls from './PolygonDrawingControls';
 
 // Fix for default markers in React Leaflet
 const createCustomIcon = (temperature: number) => {
@@ -98,119 +99,139 @@ export default function WeatherMap() {
   const currentTime = weatherData.hourly.time[timeline.currentIndex];
 
   return (
-    <div className="w-full h-full relative min-h-[400px]">
-      <MapContainer
-        center={locationPosition}
-        zoom={10}
-        className="w-full h-full rounded-lg"
-        style={{ minHeight: '400px' }}
-        scrollWheelZoom={true}
-        key={`${currentLocation.latitude}-${currentLocation.longitude}`} // Force re-render on location change
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        {/* Current location weather marker */}
-        <Marker 
-          position={locationPosition}
-          icon={createCustomIcon(currentTemperature)}
+    <div className="w-full h-full flex flex-col">
+      {/* Map Container */}
+      <div className="flex-grow relative min-h-[400px]">
+        <MapContainer
+          center={locationPosition}
+          zoom={10}
+          className="w-full h-full rounded-lg"
+          style={{ minHeight: '400px' }}
+          scrollWheelZoom={true}
+          key={`${currentLocation.latitude}-${currentLocation.longitude}`} // Force re-render on location change
         >
-          <Popup>
-            <div className="text-center">
-              <h3 className="font-semibold mb-2">{currentLocation.name} Weather</h3>
-              <p><strong>Temperature:</strong> {currentTemperature?.toFixed(1)}°C</p>
-              <p><strong>Time:</strong> {new Date(currentTime).toLocaleString()}</p>
-              <p><strong>Humidity:</strong> {weatherData.hourly.relative_humidity_2m[timeline.currentIndex]}%</p>
-              <p><strong>Wind:</strong> {weatherData.hourly.wind_speed_10m[timeline.currentIndex]?.toFixed(1)} km/h</p>
-            </div>
-          </Popup>
-        </Marker>
-
-        {/* Render polygons */}
-        {polygons.map((polygon) => (
-          <LeafletPolygon
-            key={polygon.id}
-            positions={polygon.coordinates as [number, number][]}
-            pathOptions={{
-              color: polygon.color,
-              fillColor: getPolygonColor(polygon, currentTemperature),
-              fillOpacity: 0.4,
-              weight: 2,
-            }}
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          
+          {/* Current location weather marker */}
+          <Marker 
+            position={locationPosition}
+            icon={createCustomIcon(currentTemperature)}
           >
             <Popup>
-              <div className="min-w-48">
-                <h4 className="font-semibold mb-2">Custom Area #{polygons.indexOf(polygon) + 1}</h4>
-                <div className="space-y-1 text-sm">
-                  <p><strong>Data Source:</strong> {polygon.dataSource.replace('_', ' ').replace('2m', ' (2m)')}</p>
-                  {polygon.statistics && (
-                    <>
-                      <p><strong>Average:</strong> {polygon.statistics.average.toFixed(1)}°C</p>
-                      <p><strong>Range:</strong> {polygon.statistics.min.toFixed(1)}°C - {polygon.statistics.max.toFixed(1)}°C</p>
-                      <p><strong>Points:</strong> {polygon.statistics.count}</p>
-                    </>
-                  )}
-                  <div className="mt-2">
-                    <p className="font-medium text-xs">Color Thresholds:</p>
-                    {polygon.thresholds.map((threshold, idx) => (
-                      <div key={idx} className="flex items-center space-x-2 text-xs">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: threshold.color }}
-                        />
-                        <span>{threshold.operator} {threshold.value}°C</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="text-center">
+                <h3 className="font-semibold mb-2">{currentLocation.name} Weather</h3>
+                <p><strong>Temperature:</strong> {currentTemperature?.toFixed(1)}°C</p>
+                <p><strong>Time:</strong> {new Date(currentTime).toLocaleString()}</p>
+                <p><strong>Humidity:</strong> {weatherData.hourly.relative_humidity_2m[timeline.currentIndex]}%</p>
+                <p><strong>Wind:</strong> {weatherData.hourly.wind_speed_10m[timeline.currentIndex]?.toFixed(1)} km/h</p>
               </div>
             </Popup>
-          </LeafletPolygon>
-        ))}
+          </Marker>
 
-        {/* Polygon drawing tool */}
-        <PolygonDrawing />
-      </MapContainer>
+          {/* Render polygons */}
+          {polygons.map((polygon) => (
+            <LeafletPolygon
+              key={polygon.id}
+              positions={polygon.coordinates as [number, number][]}
+              pathOptions={{
+                color: polygon.color,
+                fillColor: getPolygonColor(polygon, currentTemperature),
+                fillOpacity: 0.4,
+                weight: 2,
+              }}
+            >
+              <Popup>
+                <div className="min-w-48">
+                  <h4 className="font-semibold mb-2">Custom Area #{polygons.indexOf(polygon) + 1}</h4>
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Data Source:</strong> {polygon.dataSource.replace('_', ' ').replace('2m', ' (2m)')}</p>
+                    {polygon.statistics && (
+                      <>
+                        <p><strong>Average:</strong> {polygon.statistics.average.toFixed(1)}°C</p>
+                        <p><strong>Range:</strong> {polygon.statistics.min.toFixed(1)}°C - {polygon.statistics.max.toFixed(1)}°C</p>
+                        <p><strong>Points:</strong> {polygon.statistics.count}</p>
+                      </>
+                    )}
+                    <div className="mt-2">
+                      <p className="font-medium text-xs">Color Thresholds:</p>
+                      {polygon.thresholds.map((threshold, idx) => (
+                        <div key={idx} className="flex items-center space-x-2 text-xs">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: threshold.color }}
+                          />
+                          <span>{threshold.operator} {threshold.value}°C</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Popup>
+            </LeafletPolygon>
+          ))}
 
-      {/* Map Legend */}
-      <div className="absolute top-4 right-4 bg-white p-3 rounded-lg shadow-lg border z-[1000]">
-        <h4 className="font-semibold text-sm mb-2">Temperature Scale</h4>
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#1e40af' }}></div>
-            <span>{'< 0°C (Freezing)'}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
-            <span>0-10°C (Cold)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
-            <span>10-20°C (Mild)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
-            <span>20-30°C (Warm)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
-            <span>{'> 30°C (Hot)'}</span>
-          </div>
-        </div>
+          {/* Polygon drawing tool */}
+          <PolygonDrawing />
+        </MapContainer>
       </div>
 
-      {/* Current weather info overlay */}
-      <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg border z-[1000]">
-        <h4 className="font-semibold text-sm mb-1">Current Weather</h4>
-        <p className="text-sm">{new Date(currentTime).toLocaleString(undefined, {
-          weekday: 'short',
-          hour: '2-digit',
-          minute: '2-digit'
-        })}</p>
-        <p className="text-lg font-bold text-blue-600">{currentTemperature?.toFixed(1)}°C</p>
-        <p className="text-xs text-gray-500">{currentLocation.name}</p>
+      {/* Map Controls Container - Below the map */}
+      <div className="flex-shrink-0 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Draw Area Controls */}
+          <div className="bg-white p-4 rounded-lg shadow-lg border">
+            <h4 className="font-semibold text-sm mb-3">Map Controls</h4>
+            <PolygonDrawingControls />
+          </div>
+
+          {/* Temperature Legend */}
+          <div className="bg-white p-4 rounded-lg shadow-lg border">
+            <h4 className="font-semibold text-sm mb-3">Temperature Scale</h4>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#1e40af' }}></div>
+                <span>{'< 0°C (Freezing)'}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+                <span>0-10°C (Cold)</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+                <span>10-20°C (Mild)</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+                <span>20-30°C (Warm)</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+                <span>{'> 30°C (Hot)'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Current Weather Info */}
+          <div className="bg-white p-4 rounded-lg shadow-lg border">
+            <h4 className="font-semibold text-sm mb-3">Current Weather</h4>
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{new Date(currentTime).toLocaleString(undefined, {
+                weekday: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
+              <p className="text-2xl font-bold text-blue-600">{currentTemperature?.toFixed(1)}°C</p>
+              <p className="text-xs text-gray-500">{currentLocation.name}</p>
+              <div className="text-xs text-gray-600 mt-2 space-y-1">
+                <p>Humidity: {weatherData.hourly.relative_humidity_2m[timeline.currentIndex]}%</p>
+                <p>Wind: {weatherData.hourly.wind_speed_10m[timeline.currentIndex]?.toFixed(1)} km/h</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -104,14 +104,14 @@ export default function Home() {
           </div>
 
           {/* Main Content Area */}
-          <div className="lg:col-span-3 flex flex-col h-full">
+          <div className="lg:col-span-3 flex flex-col h-full space-y-6">
             {/* Interactive Map - takes majority of space */}
-            <Card className="flex-grow mb-6 min-h-[400px]">
-              <CardHeader className="pb-2">
+            <Card className="flex-grow min-h-[500px]">
+              <CardHeader className="pb-4">
                 <CardTitle>Interactive Weather Map</CardTitle>
               </CardHeader>
-              <CardContent className="p-0 h-full">
-                <div className="h-full min-h-[400px]">
+              <CardContent className="p-6 h-full">
+                <div className="h-full min-h-[500px]">
                   <WeatherMap />
                 </div>
               </CardContent>
