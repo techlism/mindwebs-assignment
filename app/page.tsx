@@ -103,20 +103,24 @@ export default function Home() {
             <DataSidebar />
           </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-3 flex flex-col space-y-6">
-            {/* Interactive Map */}
-            <Card className="flex-1">
-              <CardHeader>
+          {/* Main Content Area */}
+          <div className="lg:col-span-3 flex flex-col h-full">
+            {/* Interactive Map - takes majority of space */}
+            <Card className="flex-grow mb-6 min-h-[400px]">
+              <CardHeader className="pb-2">
                 <CardTitle>Interactive Weather Map</CardTitle>
               </CardHeader>
-              <CardContent className="p-0">
-                <WeatherMap />
+              <CardContent className="p-0 h-full">
+                <div className="h-full min-h-[400px]">
+                  <WeatherMap />
+                </div>
               </CardContent>
             </Card>
 
-            {/* Timeline Controls */}
-            <Timeline />
+            {/* Timeline Controls - positioned at bottom */}
+            <div className="flex-shrink-0">
+              <Timeline />
+            </div>
           </div>
         </div>
       </div>
