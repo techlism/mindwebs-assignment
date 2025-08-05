@@ -21,12 +21,17 @@ export default function DataSidebar() {
 
   if (!weatherData) return null;
 
-  const currentTime = weatherData.hourly.time[timeline.currentIndex];
+  // Get the current data index based on timeline mode
+  const currentDataIndex = timeline.mode === 'range' ? 
+    Math.max(timeline.startIndex, Math.min(timeline.endIndex, timeline.currentIndex)) : 
+    timeline.currentIndex;
+
+  const currentTime = weatherData.hourly.time[currentDataIndex];
   const currentData = {
-    temperature: weatherData.hourly.temperature_2m[timeline.currentIndex],
-    humidity: weatherData.hourly.relative_humidity_2m[timeline.currentIndex],
-    windSpeed: weatherData.hourly.wind_speed_10m[timeline.currentIndex],
-    windDirection: weatherData.hourly.wind_direction_10m[timeline.currentIndex],
+    temperature: weatherData.hourly.temperature_2m[currentDataIndex],
+    humidity: weatherData.hourly.relative_humidity_2m[currentDataIndex],
+    windSpeed: weatherData.hourly.wind_speed_10m[currentDataIndex],
+    windDirection: weatherData.hourly.wind_direction_10m[currentDataIndex],
   };
 
   const selectedPolygonData = selectedPolygon
@@ -147,8 +152,8 @@ export default function DataSidebar() {
                 unit="°C"
                 color="#ef4444"
                 trend={weatherData.hourly.temperature_2m.slice(
-                  Math.max(0, timeline.currentIndex - 12),
-                  timeline.currentIndex + 12,
+                  Math.max(0, currentDataIndex - 12),
+                  currentDataIndex + 12,
                 )}
               />
               <MetricChart
@@ -157,8 +162,8 @@ export default function DataSidebar() {
                 unit="%"
                 color="#3b82f6"
                 trend={weatherData.hourly.relative_humidity_2m.slice(
-                  Math.max(0, timeline.currentIndex - 12),
-                  timeline.currentIndex + 12,
+                  Math.max(0, currentDataIndex - 12),
+                  currentDataIndex + 12,
                 )}
               />
               <MetricChart
@@ -167,8 +172,8 @@ export default function DataSidebar() {
                 unit="km/h"
                 color="#10b981"
                 trend={weatherData.hourly.wind_speed_10m.slice(
-                  Math.max(0, timeline.currentIndex - 12),
-                  timeline.currentIndex + 12,
+                  Math.max(0, currentDataIndex - 12),
+                  currentDataIndex + 12,
                 )}
               />
             </div>

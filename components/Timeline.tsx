@@ -28,17 +28,34 @@ export default function Timeline() {
     updatePolygonDataForTimeline();
   }, [timeline.currentIndex, timeline.startIndex, timeline.endIndex, timeline.mode, updatePolygonDataForTimeline]);
 
+  // Initialize current index to start of range when switching to range mode
+  useEffect(() => {
+    if (timeline.mode === 'range' && (timeline.currentIndex < timeline.startIndex || timeline.currentIndex > timeline.endIndex)) {
+      setCurrentIndex(timeline.startIndex);
+    }
+  }, [timeline.mode, timeline.startIndex, timeline.endIndex, timeline.currentIndex, setCurrentIndex]);
+
   // Auto-advance timeline when playing
   useEffect(() => {
     if (timeline.isPlaying && weatherData) {
       intervalRef.current = setInterval(() => {
         if (timeline.mode === 'single') {
-          setCurrentIndex((timeline.currentIndex + 1) % weatherData.hourly.time.length);
+          const nextIndex = timeline.currentIndex + 1;
+          if (nextIndex < weatherData.hourly.time.length) {
+            setCurrentIndex(nextIndex);
+          } else {
+            // Stop at end of data
+            togglePlayback();
+          }
         } else {
-          // For range mode, advance the window
-          const windowSize = timeline.endIndex - timeline.startIndex;
-          const newStart = (timeline.startIndex + 1) % (weatherData.hourly.time.length - windowSize);
-          setTimelineRange(newStart, newStart + windowSize);
+          // For range mode, advance through the selected range only
+          if (timeline.currentIndex < timeline.endIndex) {
+            // Still within range, advance current position
+            setCurrentIndex(timeline.currentIndex + 1);
+          } else {
+            // Reached end of range, stop simulation
+            togglePlayback();
+          }
         }
       }, timeline.playbackSpeed);
     } else {
@@ -53,7 +70,7 @@ export default function Timeline() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [timeline.isPlaying, timeline.currentIndex, timeline.startIndex, timeline.endIndex, timeline.mode, timeline.playbackSpeed, weatherData, setCurrentIndex, setTimelineRange]);
+  }, [timeline.isPlaying, timeline.currentIndex, timeline.startIndex, timeline.endIndex, timeline.mode, timeline.playbackSpeed, weatherData, setCurrentIndex, togglePlayback]);
 
   if (!weatherData) return null;
 
@@ -200,6 +217,14 @@ export default function Timeline() {
                 </div>
               )}
               
+              {/* Simulation status indicator */}
+              {timeline.mode === 'range' && timeline.currentIndex === timeline.endIndex && (
+                <div className="flex items-center space-x-2 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                  <div className="w-2 h-2 bg-amber-600 rounded-full"></div>
+                  <span>Simulation completed</span>
+                </div>
+              )}
+              
               {/* Mode Toggle */}
               <div className="flex items-center space-x-2 text-sm">
                 <span className="text-gray-600">Mode:</span>
@@ -222,7 +247,7 @@ export default function Timeline() {
               <div className="text-sm text-gray-600">
                 {timeline.mode === 'single' 
                   ? `Hour ${timeline.currentIndex + 1} of ${totalHours}`
-                  : `Hours ${timeline.startIndex + 1}-${timeline.endIndex + 1} of ${totalHours} (${timeline.endIndex - timeline.startIndex + 1}h window)`
+                  : `Range: ${timeline.startIndex + 1}-${timeline.endIndex + 1} of ${totalHours} | Current: Hour ${timeline.currentIndex + 1}`
                 }
               </div>
             </div>
@@ -236,13 +261,14 @@ export default function Timeline() {
                 {formatTime(currentTime)}
               </div>
             ) : (
-              <div className="flex items-center justify-center space-x-4">
-                <div className="text-lg font-mono bg-blue-100 rounded-lg py-2 px-3">
-                  Start: {formatTimeShort(startTime)}
+              <div className="space-y-2">
+                <div className="flex items-center justify-center space-x-4">
+                  <div className="text-lg font-mono bg-blue-100 rounded-lg py-2 px-3">
+                    Range: {formatTimeShort(startTime)} - {formatTimeShort(endTime)}
+                  </div>
                 </div>
-                <div className="text-gray-500">to</div>
-                <div className="text-lg font-mono bg-blue-100 rounded-lg py-2 px-3">
-                  End: {formatTimeShort(endTime)}
+                <div className="text-lg font-mono bg-green-100 rounded-lg py-2 px-3 inline-block">
+                  Current: {formatTime(currentTime)}
                 </div>
               </div>
             )}
@@ -279,14 +305,23 @@ export default function Timeline() {
                 />
               </>
             ) : (
-              // Dual-ended range slider
+              // Dual-ended range slider with current position indicator
               <>
                 <div className="w-full bg-gray-200 rounded-full h-2 relative">
+                  {/* Selected range background */}
                   <div 
-                    className="bg-blue-600 h-2 rounded-full absolute transition-all duration-300"
+                    className="bg-blue-300 h-2 rounded-full absolute transition-all duration-300"
                     style={{ 
                       left: `${rangeStartProgress}%`, 
                       width: `${rangeEndProgress - rangeStartProgress}%` 
+                    }}
+                  />
+                  {/* Current position indicator */}
+                  <div 
+                    className="bg-green-600 h-2 w-1 absolute transition-all duration-300"
+                    style={{ 
+                      left: `${(timeline.currentIndex / totalHours) * 100}%`,
+                      zIndex: 3
                     }}
                   />
                 </div>
@@ -307,6 +342,16 @@ export default function Timeline() {
                   onChange={handleRangeEndChange}
                   className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer"
                   style={{ zIndex: 1 }}
+                />
+                {/* Current position slider for manual control in range mode */}
+                <input
+                  type="range"
+                  min={timeline.startIndex}
+                  max={timeline.endIndex}
+                  value={timeline.currentIndex}
+                  onChange={handleSingleSliderChange}
+                  className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer"
+                  style={{ zIndex: 2 }}
                 />
               </>
             )}

@@ -97,28 +97,28 @@ export default function Home() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[calc(100vh-200px)]">
           {/* Data Source Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 max-h-[calc(100vh-240px)] overflow-y-auto">
             <DataSidebar />
           </div>
 
           {/* Main Content Area */}
-          <div className="lg:col-span-3 flex flex-col h-full space-y-6">
+          <div className="lg:col-span-3 flex flex-col h-full space-y-6 max-h-[calc(100vh-240px)]">
             {/* Interactive Map - takes majority of space */}
-            <Card className="flex-grow min-h-[500px]">
+            <Card className="flex-grow min-h-[500px] overflow-hidden">
               <CardHeader className="pb-4">
                 <CardTitle>Interactive Weather Map</CardTitle>
               </CardHeader>
-              <CardContent className="p-6 h-full">
-                <div className="h-full min-h-[500px]">
+              <CardContent className="p-6 h-full flex-grow">
+                <div className="h-full min-h-[500px] overflow-hidden">
                   <WeatherMap />
                 </div>
               </CardContent>
             </Card>
 
             {/* Timeline Controls - positioned at bottom */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 max-h-[300px] overflow-y-auto">
               <Timeline />
             </div>
           </div>

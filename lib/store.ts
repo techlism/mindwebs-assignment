@@ -144,10 +144,9 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
         if (state.timeline.mode === 'single') {
           timeIndices = [state.timeline.currentIndex];
         } else {
-          timeIndices = Array.from(
-            { length: state.timeline.endIndex - state.timeline.startIndex + 1 },
-            (_, i) => state.timeline.startIndex + i
-          );
+          // For range mode, use the current position within the range for real-time updates
+          // but also provide average data for the range in statistics
+          timeIndices = [state.timeline.currentIndex];
         }
 
         // Get data values based on polygon's data source
@@ -162,19 +161,44 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
         if (dataValues.length === 0) return polygon;
 
-        // Calculate statistics for the time period
-        const min = Math.min(...dataValues);
-        const max = Math.max(...dataValues);
-        const average = dataValues.reduce((sum, val) => sum + val, 0) / dataValues.length;
+        // For range mode, also calculate statistics for the entire range
+        let rangeStatistics = null;
+        if (state.timeline.mode === 'range') {
+          const rangeValues: number[] = [];
+          for (let i = state.timeline.startIndex; i <= state.timeline.endIndex; i++) {
+            if (i >= 0 && i < weatherData.hourly.time.length) {
+              const value = weatherData.hourly[polygon.dataSource][i];
+              if (typeof value === 'number') {
+                rangeValues.push(value);
+              }
+            }
+          }
+          
+          if (rangeValues.length > 0) {
+            const min = Math.min(...rangeValues);
+            const max = Math.max(...rangeValues);
+            const average = rangeValues.reduce((sum, val) => sum + val, 0) / rangeValues.length;
+            
+            rangeStatistics = {
+              min: Math.round(min * 10) / 10,
+              max: Math.round(max * 10) / 10,
+              average: Math.round(average * 10) / 10,
+              count: rangeValues.length,
+            };
+          }
+        }
+
+        // Use current value for real-time display
+        const currentValue = dataValues[0];
 
         return {
           ...polygon,
-          temperature: average, // This will be used for coloring
-          statistics: {
-            min: Math.round(min * 10) / 10,
-            max: Math.round(max * 10) / 10,
-            average: Math.round(average * 10) / 10,
-            count: dataValues.length,
+          temperature: currentValue, // This will be used for coloring
+          statistics: rangeStatistics || {
+            min: currentValue,
+            max: currentValue,
+            average: currentValue,
+            count: 1,
           },
         };
       });
