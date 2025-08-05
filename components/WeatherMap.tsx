@@ -95,18 +95,24 @@ export default function WeatherMap() {
   }
 
   const locationPosition: [number, number] = [weatherData.latitude, weatherData.longitude];
-  const currentTemperature = weatherData.hourly.temperature_2m[timeline.currentIndex];
-  const currentTime = weatherData.hourly.time[timeline.currentIndex];
+  
+  // Get the current data index based on timeline mode
+  const currentDataIndex = timeline.mode === 'range' ? 
+    Math.max(timeline.startIndex, Math.min(timeline.endIndex, timeline.currentIndex)) : 
+    timeline.currentIndex;
+    
+  const currentTemperature = weatherData.hourly.temperature_2m[currentDataIndex];
+  const currentTime = weatherData.hourly.time[currentDataIndex];
 
   return (
     <div className="w-full h-full flex flex-col">
       {/* Map Container */}
-      <div className="flex-grow relative min-h-[400px]">
+      <div className="flex-grow relative min-h-[400px] overflow-hidden">
         <MapContainer
           center={locationPosition}
           zoom={10}
           className="w-full h-full rounded-lg"
-          style={{ minHeight: '400px' }}
+          style={{ minHeight: '400px', maxHeight: '600px' }}
           scrollWheelZoom={true}
           key={`${currentLocation.latitude}-${currentLocation.longitude}`} // Force re-render on location change
         >
@@ -125,8 +131,8 @@ export default function WeatherMap() {
                 <h3 className="font-semibold mb-2">{currentLocation.name} Weather</h3>
                 <p><strong>Temperature:</strong> {currentTemperature?.toFixed(1)}°C</p>
                 <p><strong>Time:</strong> {new Date(currentTime).toLocaleString()}</p>
-                <p><strong>Humidity:</strong> {weatherData.hourly.relative_humidity_2m[timeline.currentIndex]}%</p>
-                <p><strong>Wind:</strong> {weatherData.hourly.wind_speed_10m[timeline.currentIndex]?.toFixed(1)} km/h</p>
+                <p><strong>Humidity:</strong> {weatherData.hourly.relative_humidity_2m[currentDataIndex]}%</p>
+                <p><strong>Wind:</strong> {weatherData.hourly.wind_speed_10m[currentDataIndex]?.toFixed(1)} km/h</p>
               </div>
             </Popup>
           </Marker>
@@ -226,8 +232,8 @@ export default function WeatherMap() {
               <p className="text-2xl font-bold text-blue-600">{currentTemperature?.toFixed(1)}°C</p>
               <p className="text-xs text-gray-500">{currentLocation.name}</p>
               <div className="text-xs text-gray-600 mt-2 space-y-1">
-                <p>Humidity: {weatherData.hourly.relative_humidity_2m[timeline.currentIndex]}%</p>
-                <p>Wind: {weatherData.hourly.wind_speed_10m[timeline.currentIndex]?.toFixed(1)} km/h</p>
+                <p>Humidity: {weatherData.hourly.relative_humidity_2m[currentDataIndex]}%</p>
+                <p>Wind: {weatherData.hourly.wind_speed_10m[currentDataIndex]?.toFixed(1)} km/h</p>
               </div>
             </div>
           </div>
