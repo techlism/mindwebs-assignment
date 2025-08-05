@@ -44,7 +44,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
     country: 'United States'
   },
   timeline: {
-    currentIndex: 336, // Start at current time (middle of 30-day window: 14 days * 24 hours)
+    currentIndex: 0,
     startIndex: 0,
     endIndex: 23, // Default to 24 hours
     isPlaying: false,
