@@ -98,11 +98,12 @@ export default function WeatherMap() {
   const currentTime = weatherData.hourly.time[timeline.currentIndex];
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative min-h-[400px]">
       <MapContainer
         center={locationPosition}
         zoom={10}
         className="w-full h-full rounded-lg"
+        style={{ minHeight: '400px' }}
         scrollWheelZoom={true}
         key={`${currentLocation.latitude}-${currentLocation.longitude}`} // Force re-render on location change
       >
