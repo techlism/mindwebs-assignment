@@ -207,48 +207,58 @@ export default function Timeline() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Timeline Control</CardTitle>
-            <div className="flex items-center space-x-4">
+            <CardTitle className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full"></div>
+              <span>Timeline Control</span>
+            </CardTitle>
+            <div className="flex items-center space-x-6">
               {/* Polygon sync indicator */}
               {polygons.length > 0 && (
-                <div className="flex items-center space-x-2 text-xs text-green-600">
+                <div className="flex items-center space-x-2 text-xs">
                   <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
-                  <span>{polygons.length} polygon{polygons.length !== 1 ? 's' : ''} synced</span>
+                  <span className="text-green-600 font-medium">{polygons.length} polygon{polygons.length !== 1 ? 's' : ''} synced</span>
                 </div>
               )}
               
               {/* Simulation status indicator */}
               {timeline.mode === 'range' && timeline.currentIndex === timeline.endIndex && (
-                <div className="flex items-center space-x-2 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                <div className="flex items-center space-x-2 text-xs bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
                   <div className="w-2 h-2 bg-amber-600 rounded-full"></div>
-                  <span>Simulation completed</span>
+                  <span className="text-amber-700 font-medium">Simulation completed</span>
                 </div>
               )}
               
-              {/* Mode Toggle */}
-              <div className="flex items-center space-x-2 text-sm">
-                <span className="text-gray-600">Mode:</span>
-                <Button
-                  variant={timeline.mode === 'single' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleModeChange('single')}
-                >
-                  Single
-                </Button>
-                <Button
-                  variant={timeline.mode === 'range' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleModeChange('range')}
-                >
-                  Range
-                </Button>
+              {/* Enhanced Mode Toggle */}
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-600 font-medium">Mode:</span>
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <Button
+                    variant={timeline.mode === 'single' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => handleModeChange('single')}
+                    className="text-xs px-3 py-1"
+                  >
+                    Single Point
+                  </Button>
+                  <Button
+                    variant={timeline.mode === 'range' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => handleModeChange('range')}
+                    className="text-xs px-3 py-1"
+                  >
+                    Range Selection
+                  </Button>
+                </div>
               </div>
               
-              <div className="text-sm text-gray-600">
-                {timeline.mode === 'single' 
-                  ? `Hour ${timeline.currentIndex + 1} of ${totalHours}`
-                  : `Range: ${timeline.startIndex + 1}-${timeline.endIndex + 1} of ${totalHours} | Current: Hour ${timeline.currentIndex + 1}`
-                }
+              {/* Enhanced Status Display */}
+              <div className="text-sm bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
+                <span className="text-blue-700 font-medium">
+                  {timeline.mode === 'single' 
+                    ? `Hour ${timeline.currentIndex + 1} of ${totalHours}`
+                    : `Range: ${timeline.startIndex + 1}-${timeline.endIndex + 1} | Current: ${timeline.currentIndex + 1}`
+                  }
+                </span>
               </div>
             </div>
           </div>
@@ -284,16 +294,30 @@ export default function Timeline() {
             onDataPointClick={handleChartClick}
           />
 
-          {/* Progress Bar and Sliders */}
-          <div className="relative">
+          {/* Enhanced Progress Bar and Sliders */}
+          <div className="relative bg-gray-100 rounded-lg p-4">
+            <div className="mb-2 text-xs text-gray-600 flex justify-between">
+              <span>Timeline Navigation</span>
+              <span>{formatTimeShort(weatherData.hourly.time[0])} - {formatTimeShort(weatherData.hourly.time[totalHours - 1])}</span>
+            </div>
+            
             {timeline.mode === 'single' ? (
-              // Single point slider
-              <>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+              // Enhanced Single point slider
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-3 relative">
                   <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300 relative"
                     style={{ width: `${singleProgress}%` }}
-                  />
+                  >
+                    {/* Current position indicator */}
+                    <div className="absolute right-0 top-0 w-3 h-3 bg-blue-700 rounded-full transform translate-x-1/2 -translate-y-0 border-2 border-white shadow-lg"></div>
+                  </div>
+                  {/* Time labels */}
+                  <div className="absolute top-4 left-0 right-0 flex justify-between text-xs text-gray-500">
+                    <span>Start</span>
+                    <span className="font-medium text-blue-600">Current: {formatTimeShort(currentTime)}</span>
+                    <span>End</span>
+                  </div>
                 </div>
                 <input
                   type="range"
@@ -301,38 +325,60 @@ export default function Timeline() {
                   max={totalHours - 1}
                   value={timeline.currentIndex}
                   onChange={handleSingleSliderChange}
-                  className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer"
+                  className="absolute inset-0 w-full h-3 opacity-0 cursor-pointer"
                 />
-              </>
+              </div>
             ) : (
-              // Dual-ended range slider with current position indicator
-              <>
-                <div className="w-full bg-gray-200 rounded-full h-2 relative">
+              // Enhanced Dual-ended range slider with current position indicator
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-3 relative">
                   {/* Selected range background */}
                   <div 
-                    className="bg-blue-300 h-2 rounded-full absolute transition-all duration-300"
+                    className="bg-gradient-to-r from-blue-300 via-blue-400 to-blue-300 h-3 rounded-full absolute transition-all duration-300"
                     style={{ 
                       left: `${rangeStartProgress}%`, 
                       width: `${rangeEndProgress - rangeStartProgress}%` 
                     }}
                   />
+                  
+                  {/* Range start handle */}
+                  <div 
+                    className="absolute top-0 w-3 h-3 bg-blue-600 rounded-full transform -translate-x-1/2 border-2 border-white shadow-lg z-10"
+                    style={{ left: `${rangeStartProgress}%` }}
+                  />
+                  
+                  {/* Range end handle */}
+                  <div 
+                    className="absolute top-0 w-3 h-3 bg-blue-600 rounded-full transform -translate-x-1/2 border-2 border-white shadow-lg z-10"
+                    style={{ left: `${rangeEndProgress}%` }}
+                  />
+                  
                   {/* Current position indicator */}
                   <div 
-                    className="bg-green-600 h-2 w-1 absolute transition-all duration-300"
+                    className="absolute top-0 w-2 h-3 bg-green-600 rounded-sm transform -translate-x-1/2 transition-all duration-300 z-20"
                     style={{ 
-                      left: `${(timeline.currentIndex / totalHours) * 100}%`,
-                      zIndex: 3
+                      left: `${(timeline.currentIndex / totalHours) * 100}%`
                     }}
                   />
+                  
+                  {/* Time labels */}
+                  <div className="absolute top-4 left-0 right-0 flex justify-between text-xs text-gray-500">
+                    <span className="text-blue-600 font-medium">{formatTimeShort(startTime)}</span>
+                    <span className="text-green-600 font-medium">Current: {formatTimeShort(currentTime)}</span>
+                    <span className="text-blue-600 font-medium">{formatTimeShort(endTime)}</span>
+                  </div>
                 </div>
+                
+                {/* Multiple input ranges for dual handle functionality */}
                 <input
                   type="range"
                   min="0"
                   max={totalHours - 1}
                   value={timeline.startIndex}
                   onChange={handleRangeStartChange}
-                  className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer"
-                  style={{ zIndex: 2 }}
+                  className="absolute inset-0 w-full h-3 opacity-0 cursor-pointer"
+                  style={{ zIndex: 3 }}
+                  title="Drag to adjust range start"
                 />
                 <input
                   type="range"
@@ -340,8 +386,9 @@ export default function Timeline() {
                   max={totalHours - 1}
                   value={timeline.endIndex}
                   onChange={handleRangeEndChange}
-                  className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer"
-                  style={{ zIndex: 1 }}
+                  className="absolute inset-0 w-full h-3 opacity-0 cursor-pointer"
+                  style={{ zIndex: 2 }}
+                  title="Drag to adjust range end"
                 />
                 {/* Current position slider for manual control in range mode */}
                 <input
@@ -350,11 +397,20 @@ export default function Timeline() {
                   max={timeline.endIndex}
                   value={timeline.currentIndex}
                   onChange={handleSingleSliderChange}
-                  className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer"
-                  style={{ zIndex: 2 }}
+                  className="absolute inset-0 w-full h-3 opacity-0 cursor-pointer"
+                  style={{ zIndex: 4 }}
+                  title="Drag to move current position within range"
                 />
-              </>
+              </div>
             )}
+            
+            {/* Helper text */}
+            <div className="mt-3 text-xs text-gray-500 text-center">
+              {timeline.mode === 'single' 
+                ? 'Drag the slider or use controls to navigate through time'
+                : 'Blue handles set range, green indicator shows current time position'
+              }
+            </div>
           </div>
 
           {/* Controls */}

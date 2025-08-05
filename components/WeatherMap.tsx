@@ -7,6 +7,7 @@ import { useWeatherStore } from '@/lib/store';
 import { Polygon } from '@/types/weather';
 import PolygonDrawing from './PolygonDrawing';
 import PolygonDrawingControls from './PolygonDrawingControls';
+import DataLegend from './DataLegend';
 
 // Fix for default markers in React Leaflet
 const createCustomIcon = (temperature: number) => {
@@ -186,56 +187,56 @@ export default function WeatherMap() {
 
       {/* Map Controls Container - Below the map */}
       <div className="flex-shrink-0 mt-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Draw Area Controls */}
-          <div className="bg-white p-4 rounded-lg shadow-lg border">
-            <h4 className="font-semibold text-sm mb-3">Map Controls</h4>
-            <PolygonDrawingControls />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Left Column: Map Controls */}
+          <div className="space-y-4">
+            {/* Draw Area Controls */}
+            <div className="bg-white p-4 rounded-lg shadow-lg border">
+              <h4 className="font-semibold text-sm mb-3 flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span>Polygon Drawing</span>
+                {polygons.length > 0 && (
+                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full ml-2">
+                    {polygons.length} area{polygons.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </h4>
+              <PolygonDrawingControls />
+              
+              {/* Quick polygon guide */}
+              <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-blue-700 border border-blue-200">
+                <p className="font-medium mb-1">💡 Drawing Tips:</p>
+                <p>• Click to add points, double-click to finish</p>
+                <p>• Drawn areas show real-time weather data</p>
+                <p>• Configure thresholds in the sidebar</p>
+              </div>
+            </div>
 
-          {/* Temperature Legend */}
-          <div className="bg-white p-4 rounded-lg shadow-lg border">
-            <h4 className="font-semibold text-sm mb-3">Temperature Scale</h4>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#1e40af' }}></div>
-                <span>{'< 0°C (Freezing)'}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
-                <span>0-10°C (Cold)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
-                <span>10-20°C (Mild)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
-                <span>20-30°C (Warm)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
-                <span>{'> 30°C (Hot)'}</span>
+            {/* Current Weather Info */}
+            <div className="bg-white p-4 rounded-lg shadow-lg border">
+              <h4 className="font-semibold text-sm mb-3 flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span>Current Weather</span>
+              </h4>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{new Date(currentTime).toLocaleString(undefined, {
+                  weekday: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</p>
+                <p className="text-2xl font-bold text-blue-600">{currentTemperature?.toFixed(1)}°C</p>
+                <p className="text-xs text-gray-500">{currentLocation.name}</p>
+                <div className="text-xs text-gray-600 mt-2 space-y-1">
+                  <p>Humidity: {weatherData.hourly.relative_humidity_2m[currentDataIndex]}%</p>
+                  <p>Wind: {weatherData.hourly.wind_speed_10m[currentDataIndex]?.toFixed(1)} km/h</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Current Weather Info */}
-          <div className="bg-white p-4 rounded-lg shadow-lg border">
-            <h4 className="font-semibold text-sm mb-3">Current Weather</h4>
-            <div className="space-y-1">
-              <p className="text-sm font-medium">{new Date(currentTime).toLocaleString(undefined, {
-                weekday: 'short',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}</p>
-              <p className="text-2xl font-bold text-blue-600">{currentTemperature?.toFixed(1)}°C</p>
-              <p className="text-xs text-gray-500">{currentLocation.name}</p>
-              <div className="text-xs text-gray-600 mt-2 space-y-1">
-                <p>Humidity: {weatherData.hourly.relative_humidity_2m[currentDataIndex]}%</p>
-                <p>Wind: {weatherData.hourly.wind_speed_10m[currentDataIndex]?.toFixed(1)} km/h</p>
-              </div>
-            </div>
+          {/* Right Column: Comprehensive Data Legend */}
+          <div className="max-h-[500px] overflow-y-auto">
+            <DataLegend />
           </div>
         </div>
       </div>
