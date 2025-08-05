@@ -14,8 +14,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link 
-          rel="stylesheet" 
+        <link
+          rel="stylesheet"
           href="/css/leaflet.css"
         />
       </head>
