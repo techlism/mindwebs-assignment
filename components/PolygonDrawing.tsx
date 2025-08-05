@@ -50,6 +50,23 @@ export default function PolygonDrawing() {
   const [showOverlapWarning, setShowOverlapWarning] = useState(false);
   const [pendingPolygon, setPendingPolygon] = useState<[number, number][] | null>(null);
 
+  // Listen for drawing mode toggle from external controls
+  useEffect(() => {
+    const handleToggleDrawingMode = (event: CustomEvent) => {
+      const { isDrawing: newDrawingState } = event.detail;
+      if (newDrawingState) {
+        startDrawing();
+      } else {
+        cancelDrawing();
+      }
+    };
+
+    window.addEventListener('toggleDrawingMode', handleToggleDrawingMode as EventListener);
+    return () => {
+      window.removeEventListener('toggleDrawingMode', handleToggleDrawingMode as EventListener);
+    };
+  }, []);
+
   const generateId = () => `polygon-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
   const generateColor = () => {
@@ -179,97 +196,6 @@ export default function PolygonDrawing() {
 
   return (
     <>
-      {/* Drawing controls */}
-      <div className="absolute top-4 left-4 bg-white p-3 rounded-lg shadow-lg border z-[1000] max-w-sm">
-        {!isDrawing ? (
-          <div className="space-y-2">
-            <button
-              onClick={startDrawing}
-              className="w-full px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 flex items-center justify-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-              <span>Draw Area</span>
-            </button>
-            
-            {/* Polygon List */}
-            {polygons.length > 0 && (
-              <div className="mt-3">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
-                  Drawn Areas ({polygons.length})
-                </h4>
-                <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {polygons.map((polygon) => (
-                    <div
-                      key={polygon.id}
-                      className={`flex items-center justify-between p-2 rounded text-xs border ${
-                        selectedPolygon === polygon.id 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: polygon.color }}
-                        />
-                        <span className="text-gray-700">
-                          Area {polygons.indexOf(polygon) + 1}
-                        </span>
-                        {polygon.statistics && (
-                          <span className="text-gray-500">
-                            ({polygon.statistics.average.toFixed(1)}°C)
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handlePolygonDelete(polygon.id)}
-                        className="text-red-600 hover:text-red-800 p-1"
-                        title="Delete polygon"
-                      >
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-gray-700">Drawing Mode</div>
-            <div className="text-xs text-gray-500">
-              Click to add points (min 3 required)
-              <br />
-              Double-click or click near start to finish
-            </div>
-            <div className="text-xs text-blue-600">
-              Points: {currentPoints.length}
-              {currentPoints.length >= 3 && <span className="text-green-600"> ✓ Ready</span>}
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={cancelDrawing}
-                className="flex-1 px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-              >
-                Cancel
-              </button>
-              {currentPoints.length >= 3 && (
-                <button
-                  onClick={() => completePolygon(currentPoints)}
-                  className="flex-1 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                >
-                  Finish
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Overlap Warning Modal */}
       {showOverlapWarning && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1010]">
